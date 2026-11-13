@@ -24,10 +24,19 @@ def main() -> int:
         return 1
     os.makedirs(OUT_DIR, exist_ok=True)
     shutil.copyfile(SRC, OUT)
+    # Integrity check: the copied output must be byte-identical to the source.
+    with open(SRC, "rb") as fh:
+        src_digest = hashlib.sha256(fh.read()).hexdigest()
     with open(OUT, "rb") as fh:
         digest = hashlib.sha256(fh.read()).hexdigest()
+    if digest != src_digest:
+        raise SystemExit(
+            f"error: integrity check failed: output sha256 {digest} "
+            f"does not match source sha256 {src_digest}"
+        )
     size = os.path.getsize(OUT)
     print(f"wrote {OUT} ({size} bytes, sha256 {digest})")
+    print(f"output size: {size} bytes")
     return 0
 
 
